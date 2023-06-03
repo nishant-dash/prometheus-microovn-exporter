@@ -31,36 +31,73 @@ class Collector:
         }
 
     def _parse_cluster_status_output(self, to_parse : Dict [str, Any]) -> Dict [str, Any]:
-        if len(to_parse) != 3:
-            self.logger.warning(
-                "Did not get cluster status output from all 3 units, only got {len(to_parse)}"
-            )
-        roles = []
-        leaders = []
-        votes = []
+        final_dict = {}
+        to_consider = ["role" ,"leader" ,"vote", "address", "status"]
         for unit, cluster_status in to_parse.items():
-            continue
-        return {}
+            status_dict = {}
+            for row in cluster_status.split('\n'):
+                key = row.split(':')[0].lower()
+                value = row.split(':')[-1]
+                if key in to_consider:
+                    if key == "address":
+                        status_dict[key] = ':'.join(row.split(':')[2:])
+                    else:
+                        status_dict[key] = value.lstrip(' ')
+            final_dict[unit] = status_dict
+        self.logger.debug(f"From cluster status, parsed {final_dict}")
+        return final_dict
 
     def _get_db_ctl(self, cluster: str) -> str:
         return f"ovn{cluster}_db.ctl"
 
-    def get_cluster_status(self) -> Dict[str, Any]:
+    def check_cluster_status(self) -> Dict[str, Any]:
         output_to_parse = {}
         clusters = ["nb", "sb"]
         for cluster in clusters:
             config_key = f"{self.config['mode']}_cluster"
             path = self.config[config_key]["path"]
             path = f"{path}/{self._get_db_ctl(cluster)}"
-            cmd = [self.ovs_appctl, "-t", path, "cluster/Status", self.cluster_name[cluster]]
+            cmd = [self.ovs_appctl, "-t", path, "cluster/status", self.cluster_name[cluster]]
             try:
                 self.logger.debug(f"Running {cmd}")
                 output = sp.run(cmd, stdout=sp.PIPE, stderr=sp.DEVNULL)
-                output_to_parse[cluster] = output.stdout
+                output_to_parse[cluster] = output.stdout.decode('utf-8')
             except Exception as exception:
                 self.logger.warning(f"Could not query {cluster} cluster for status")
             continue
         return self._parse_cluster_status_output(output_to_parse)
+
+    # def _get_local_ip(self) -> str:
+    #     '''
+    #     Parses local ip either from
+    #     env file, if using microovn
+    #     cluster status, if using ovn
+    #     '''
+    #     ip = None
+    #     if self.mode == "microovn":
+    #         try:
+    #             env_file = self.config["microovn_env"]
+    #             with open(env_file, 'r') as f:
+    #                 env_data = f.read()
+    #         except Exception as exception:
+    #             self.logger.warning(f"Could not read {env_file}")
+    #             return None
+    #         env_data = env_data.split('\n')
+    #         for row in env_data:
+    #             if row.split('=')[0].lower() == "ovn_local_ip":
+    #                 ip = row.split('=')[1]
+    #     elif self.mode == "ovn":
+    #         cluster_info = self.check_cluster_status()
+    #         ip = cluster_info['nb']["address"].split(':')[0]
+    #     return ip
+    def _get_local_ip(self) -> str:
+        '''
+        Parses local ip either from cluster status
+        '''
+        ip = None
+        cluster_info = self.check_cluster_status()
+        ip = cluster_info['nb']["address"].split(':')[0]
+        return ip
 
     def check_ports(self) -> Dict[int, int]:
         '''
@@ -69,11 +106,12 @@ class Collector:
         1 -> port is CLOSED,
         Other values -> UNKNOWN.
         '''
+        local_ip = self._get_local_ip()
         ports = {
             6641: {"ip": "127.0.0.1", "msg": "OVN Northbound OVSDB Server"},
             6642: {"ip": "127.0.0.1", "msg": "OVN Southbound OVSDB Server"},
-            6643: {"ip": None, "msg": "OVN NB RAFT Control Plane"},
-            6644: {"ip": None, "msg": "OVN SB RAFT Control Plane"},
+            6643: {"ip": local_ip, "msg": "OVN NB RAFT Control Plane"},
+            6644: {"ip": local_ip, "msg": "OVN SB RAFT Control Plane"},
         }
         if self.mode == "ovn":
             ports[16642] = {"ip": "127.0.0.1", "msg": "OVN misc port"}

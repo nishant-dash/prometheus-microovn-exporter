@@ -2,6 +2,8 @@ exporter:
   port: 9999
   collect_interval: 15
 
+microovn_env: "/var/snap/microovn/common/data/ovn.env"
+
 microovn_cluster:
   path: "/var/snap/microovn/common/run/central"
 

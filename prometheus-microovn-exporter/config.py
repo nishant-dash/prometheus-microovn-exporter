@@ -45,6 +45,7 @@ class Config(metaclass=ConfigMeta):
                     ("collect_interval", int),
                 ]
             ),
+            "microovn_env": str,
             "microovn_cluster": OrderedDict([("path", str),]),
             # "microovn_services": OrderedDict(
             #     [
