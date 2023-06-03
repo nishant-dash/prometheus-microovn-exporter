@@ -1,4 +1,4 @@
-"""Set up prometheus_juju_exporter python module cli scripts."""
+"""Set up prometheus_microovn_exporter python module cli scripts."""
 
 from setuptools import setup
 
