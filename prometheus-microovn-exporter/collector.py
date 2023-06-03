@@ -19,8 +19,9 @@ class Collector:
         self.config = Config().get_config()
         self.logger = getLogger(__name__)
         self.data: Dict[str, Any] = {}
+        self.mode = str(self.config["mode"])
         self.logger.debug("Collector initialized")
-        if self.config["mode"] == "microovn":
+        if self.mode == "microovn":
             self.ovs_appctl = "microovn.ovs-appctl"
         else:
             self.ovs_appctl = "ovs-appctl"
@@ -69,28 +70,26 @@ class Collector:
         Other values -> UNKNOWN.
         '''
         ports = {
-            6641: "OVN Northbound OVSDB Server",
-            6642: "OVN Southbound OVSDB Server",
-            6643: "OVN NB RAFT Control Plane",
-            6644: "OVN SB RAFT Control Plane",
+            6641: {"ip": "127.0.0.1", "msg": "OVN Northbound OVSDB Server"},
+            6642: {"ip": "127.0.0.1", "msg": "OVN Southbound OVSDB Server"},
+            6643: {"ip": None, "msg": "OVN NB RAFT Control Plane"},
+            6644: {"ip": None, "msg": "OVN SB RAFT Control Plane"},
         }
+        if self.mode == "ovn":
+            ports[16642] = {"ip": "127.0.0.1", "msg": "OVN misc port"}
         port_state = {}
         for p in ports:
             create_socket = sock.socket(sock.AF_INET, sock.SOCK_STREAM)
-            result = create_socket.connect_ex(("127.0.0.1", p))
+            result = create_socket.connect_ex((ports[p]["ip"], p))
             create_socket.close()
             port_state[p] = int(result)
             if port_state[p] == 1:
-                self.logger.warning(f"Port {p} for {ports[p]} is NOT open")
+                self.logger.warning(f"Port {p} for {ports[p]['msg']} is NOT open")
             elif port_state[p] == 0:
-                self.logger.debug(f"Port {p} for {ports[p]} is OPEN")
+                self.logger.debug(f"Port {p} for {ports[p]['msg']} is OPEN")
             else:
-                self.logger.warning(f"Port {p} for {ports[p]} is an an UNKNOWN state")
+                self.logger.warning(f"Port {p} for {ports[p]['msg']} is an an UNKNOWN state")
         return port_state
-
-    @staticmethod
-    def _get_date_time(timestamp):
-        return datetime.strptime(timestamp, "%Y%m%d%H%M%S%z").date().isoformat()
 
     def check_certs(self) -> Dict[str, int]:
         '''
@@ -99,8 +98,10 @@ class Collector:
         1 -> Invalid
         2 -> Valid, but only for 30 more days
         '''
-        cert_validity = {cert: 1 for cert in self.config["microovn_certs"]}
-        for cert in self.config["microovn_certs"]:
+        config_key = f"{self.config['mode']}_certs"
+        cert_validity = {str(cert): 1 for cert in self.config[config_key].values()}
+        for cert in self.config[config_key]:
+            cert = str(self.config[config_key][cert])
             cert_data = None
             x509_cert = None
             not_after_timestamp = None
@@ -108,27 +109,34 @@ class Collector:
                 with open(cert, 'r') as f:
                     cert_data = f.read()
             except Exception as exception:
-                self.logger.error("Could not find {cert}")
-                return
+                # @TODO: Need to find a good way of determining if
+                # node is either a central or chassis
+                self.logger.warning(f"Could not find {cert}")
+                continue
             try:
                 x509_cert = openssl.crypto.load_certificate(openssl.crypto.FILETYPE_PEM, cert_data)
                 self.logger.debug(f"Loaded x509 object of {cert}")
             except Exception as exception:
-                self.logger.error("Could not use openssl to load {cert}")
-                return
+                self.logger.error(f"Could not use openssl to load {cert}")
+                continue
             try:
                 not_after_timestamp = x509_cert.get_notAfter().decode("utf-8")
             except Exception as exception:
-                self.logger.error("Could not use decode {cert}")
-                return
-            not_after = _get_date_time(not_after_timestamp)
-            now = _get_date_time(datetime.now())
+                self.logger.error(f"Could not use decode {cert}")
+                continue
+            not_after = datetime.strptime(not_after_timestamp, "%Y%m%d%H%M%S%z").date()
+            now = datetime.now().date()
             num_days = not_after - now
             num_days = num_days.days
-            self.logging.info(f"{cert} valid for {num_days} days, till {not_after}")
+            self.logger.info(f"{cert} valid for {num_days} days, till {not_after}")
             if num_days > 30:
                 cert_validity[cert] = 2
             elif num_days > 0 and num_days <= 30:
                 cert_validity[cert] = 0
         
         return cert_validity
+
+if __name__ == "__main__":
+    collector = Collector()
+    collector.check_ports()
+    collector.check_certs()

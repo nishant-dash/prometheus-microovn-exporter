@@ -6,17 +6,15 @@ microovn_cluster:
   path: "/var/snap/microovn/common/run/central"
 
 microovn_certs:
-  path: "/var/snap/microovn/common/state"
-  server: "server.crt"
-  cluster: "cluster.crt"
+  server: "/var/snap/microovn/common/state/server.crt"
+  cluster: "/var/snap/microovn/common/state/cluster.crt"
 
 ovn_cluster:
   path: "/var/run/ovn"
 
 ovn_certs:
-  path: "/etc/ovn"
-  server: "ovn-central.crt"
-  cluster: "ovn-chassis.crt"
+  server: "/etc/ovn/ovn-central.crt"
+  cluster: "/etc/ovn/ovn-chassis.crt"
 
 mode: "microovn"
 

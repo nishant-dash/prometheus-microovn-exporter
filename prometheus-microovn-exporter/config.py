@@ -57,7 +57,6 @@ class Config(metaclass=ConfigMeta):
             # ),
             "microovn_certs": OrderedDict(
                 [
-                    ("path", str),
                     ("server", str),
                     ("cluster", str),
                 ]
@@ -65,7 +64,6 @@ class Config(metaclass=ConfigMeta):
             "ovn_cluster": OrderedDict([("path", str),]),
             "ovn_certs": OrderedDict(
                 [
-                    ("path", str),
                     ("server", str),
                     ("cluster", str),
                 ]
@@ -77,7 +75,7 @@ class Config(metaclass=ConfigMeta):
 
         try:
             self.config.get(template)
-            self.config["mode"].as_choices(["microovn", "ovn"])
+            self.config["mode"].as_choice(["microovn", "ovn"])
             self.config["microovn_cluster"]['path'].as_filename()
             self.config["ovn_cluster"]['path'].as_filename()
             self.logger.info("Configuration parsed successfully")
