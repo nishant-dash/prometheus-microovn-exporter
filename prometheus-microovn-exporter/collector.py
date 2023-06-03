@@ -20,6 +20,10 @@ class Collector:
         self.logger = getLogger(__name__)
         self.data: Dict[str, Any] = {}
         self.logger.debug("Collector initialized")
+        if self.config["mode"] == "microovn":
+            self.ovs_appctl = "microovn.ovs-appctl"
+        else:
+            self.ovs_appctl = "ovs-appctl"
 
     def _parse_cluster_status_output(self) -> Dict [str, Any]:
         return {}
@@ -31,7 +35,8 @@ class Collector:
         output_to_parse = {}
         clusters = ["nb", "sb"]
         for cluster in clusters:
-            try: 
+            try:
+                self.logger.debug(f"Running {cmd}")
                 output = sp.run(cmd, stdout=sp.PIPE, stderr=sp.DEVNULL)
                 output_to_parse[cluster] = output.stdout
             except Exception as exception:

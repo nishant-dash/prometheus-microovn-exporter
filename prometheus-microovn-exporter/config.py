@@ -45,14 +45,7 @@ class Config(metaclass=ConfigMeta):
                     ("collect_interval", int),
                 ]
             ),
-            "microovn_clusters": OrderedDict(
-                [
-                    ("path", str),
-                    ("nb_cluster", str),
-                    ("sb_cluster", str),
-                    # ("cluster_endpoint", confuse.StrSeq(split=False)),
-                ]
-            ),
+            "microovn_cluster": OrderedDict([("path", str),]),
             # "microovn_services": OrderedDict(
             #     [
             #         ("path", str),
@@ -69,11 +62,24 @@ class Config(metaclass=ConfigMeta):
                     ("cluster", str),
                 ]
             ),
+            "ovn_cluster": OrderedDict([("path", str),]),
+            "ovn_certs": OrderedDict(
+                [
+                    ("path", str),
+                    ("server", str),
+                    ("cluster", str),
+                ]
+            ),
+            # "mode": confuse.Choice(("microovn", "ovn"), default="microovn"),
+            "mode": str, 
             "debug": bool,
         }
 
         try:
             self.config.get(template)
+            self.config["mode"].as_choices(["microovn", "ovn"])
+            self.config["microovn_cluster"]['path'].as_filename()
+            self.config["ovn_cluster"]['path'].as_filename()
             self.logger.info("Configuration parsed successfully")
         except (
             KeyError,
