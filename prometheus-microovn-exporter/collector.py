@@ -196,8 +196,8 @@ class Collector:
 
     async def get_stats(self) -> Dict[str, Any]:
         """Get stats from current host"""
-        gauge_name = "juju_machine_state"
-        gauge_desc = "Running status of juju machines"
+        gauge_name = "ovn_state"
+        gauge_desc = "State of ovn ports certs cluster"
         labels = [
             "job",
             "hostname",
