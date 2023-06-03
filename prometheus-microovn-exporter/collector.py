@@ -179,6 +179,38 @@ class Collector:
                 cert_validity[cert] = 2
         return cert_validity
 
+    def refresh_cache(self, gauge_name: str, gauge_desc: str, labels: List[str]) -> None:
+        """Refresh instances for each collection job.
+
+        :param str gauge_name: the name of the gauge
+        :param str gauge_desc: the description of the gauge
+        :param List[str] labels: the label set of the gauge
+        """
+        self.data = {
+            gauge_name: {
+                "gauge_desc": gauge_desc,
+                "labels": labels,
+                "labelvalues_update": [],
+            }
+        }
+
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get stats from current host"""
+        gauge_name = "juju_machine_state"
+        gauge_desc = "Running status of juju machines"
+        labels = [
+            "job",
+            "hostname",
+        ]
+        self.refresh_cache(gauge_name=gauge_name, gauge_desc=gauge_desc, labels=labels)
+
+        # collector.check_ports()
+        # collector.check_certs()
+        # collector.check_cluster_status()
+
+        return self.data
+
+
 if __name__ == "__main__":
     collector = Collector()
     print("RET", collector.check_ports())
