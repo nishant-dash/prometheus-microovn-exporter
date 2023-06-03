@@ -1,17 +1,15 @@
-microovn:
-  cluster:
-    nb_cluster: ""
-    sb_cluster: ""
-  service:
-    central: ""
-    chassis: ""
-    switch: ""
-    daemon: ""
-  misc:
-    northd: ""
-
 exporter:
   port: 9999
   collect_interval: 15
+
+microovn_clusters:
+  nb_cluster: ""
+  sb_cluster: ""
+
+microovn_services:
+  central: ""
+  chassis: ""
+  switch: ""
+  daemon: ""
 
 debug: False
