@@ -47,17 +47,26 @@ class Config(metaclass=ConfigMeta):
             ),
             "microovn_clusters": OrderedDict(
                 [
+                    ("path", str),
                     ("nb_cluster", str),
                     ("sb_cluster", str),
                     # ("cluster_endpoint", confuse.StrSeq(split=False)),
                 ]
             ),
-            "microovn_services": OrderedDict(
+            # "microovn_services": OrderedDict(
+            #     [
+            #         ("path", str),
+            #         ("central", str),
+            #         ("chassis", str),
+            #         ("switch", str),
+            #         ("daemon", str),
+            #     ]
+            # ),
+            "microovn_certs": OrderedDict(
                 [
-                    ("central", str),
-                    ("chassis", str),
-                    ("switch", str),
-                    ("daemon", str),
+                    ("path", str),
+                    ("server", str),
+                    ("cluster", str),
                 ]
             ),
             "debug": bool,

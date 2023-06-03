@@ -3,13 +3,13 @@ exporter:
   collect_interval: 15
 
 microovn_clusters:
-  nb_cluster: ""
-  sb_cluster: ""
+  path: "/var/snap/microovn/common/run/central/"
+  nb_cluster: "ovnnb_db.ctl"
+  sb_cluster: "ovnsb_db.ctl"
 
-microovn_services:
-  central: ""
-  chassis: ""
-  switch: ""
-  daemon: ""
+microovn_certs:
+  path: "/var/snap/microovn/common/state"
+  server: "server.crt"
+  cluster: "cluster.crt"
 
 debug: False

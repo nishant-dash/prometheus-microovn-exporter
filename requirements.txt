@@ -1,2 +1,4 @@
 prometheus-client
-asyncio
+socket
+subprocess
+openssl
