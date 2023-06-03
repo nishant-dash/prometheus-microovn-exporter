@@ -28,8 +28,7 @@
 5. env
     - /var/snap/microovn/common/data/ovn.env
 
-6. bins
-    - /snap/bin
+6. bins (under `/snap/bin`)
     - microovn.ovn-appctl
     - microovn.ovn-nbctl
     - microovn.ovn-sbctl
