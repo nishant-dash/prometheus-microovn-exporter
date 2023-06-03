@@ -1,7 +1,7 @@
 """CLI module."""
-from prometheus_juju_exporter import logger as project_logger
-from prometheus_juju_exporter.config import Config
-from prometheus_juju_exporter.exporter import ExporterDaemon
+from prometheus_microovn_exporter import logger as project_logger
+from prometheus_microovn_exporter.config import Config
+from prometheus_microovn_exporter.exporter import ExporterDaemon
 
 
 def config_logger(debug: bool = False) -> None:
