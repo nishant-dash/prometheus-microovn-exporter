@@ -96,7 +96,10 @@ class Collector:
         '''
         ip = None
         cluster_info = self.check_cluster_status()
-        ip = cluster_info['nb']["address"].split(':')[0]
+        if 'nb' in cluster_info:
+            ip = cluster_info['nb']["address"].split(':')[0]
+        else:
+            self.logger.debug(cluster_info)
         return ip
 
     def check_ports(self) -> Dict[int, int]:
@@ -106,7 +109,11 @@ class Collector:
         1 -> port is CLOSED,
         Other values -> UNKNOWN.
         '''
+        port_state = {}
         local_ip = self._get_local_ip()
+        if not local_ip:
+            self.logger.warning("Could not get cluster status for local ip")
+            return
         ports = {
             6641: {"ip": "127.0.0.1", "msg": "OVN Northbound OVSDB Server"},
             6642: {"ip": "127.0.0.1", "msg": "OVN Southbound OVSDB Server"},
@@ -115,7 +122,6 @@ class Collector:
         }
         if self.mode == "ovn":
             ports[16642] = {"ip": "127.0.0.1", "msg": "OVN misc port"}
-        port_state = {}
         for p in ports:
             create_socket = sock.socket(sock.AF_INET, sock.SOCK_STREAM)
             result = create_socket.connect_ex((ports[p]["ip"], p))
@@ -168,13 +174,13 @@ class Collector:
             num_days = num_days.days
             self.logger.info(f"{cert} valid for {num_days} days, till {not_after}")
             if num_days > 30:
-                cert_validity[cert] = 2
-            elif num_days > 0 and num_days <= 30:
                 cert_validity[cert] = 0
-        
+            elif num_days > 0 and num_days <= 30:
+                cert_validity[cert] = 2
         return cert_validity
 
 if __name__ == "__main__":
     collector = Collector()
-    collector.check_ports()
-    collector.check_certs()
+    print("RET", collector.check_ports())
+    print("RET", collector.check_certs())
+    print("RET", collector.check_cluster_status())
