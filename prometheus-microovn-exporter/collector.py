@@ -24,17 +24,25 @@ class Collector:
             self.ovs_appctl = "microovn.ovs-appctl"
         else:
             self.ovs_appctl = "ovs-appctl"
+        self.cluster_name = {
+            "nb": "OVN_Northbound",
+            "sb": "OVN_Southbound",
+        }
 
     def _parse_cluster_status_output(self) -> Dict [str, Any]:
         return {}
 
+    def _get_db_ctl(self, cluster: str) -> str:
+        return f"ovn{cluster}_db.ctl"
+
     def get_cluster_status(self) -> Dict[str, Any]:
-        # microovn.ovs-appctl -t /var/snap/microovn/common/run/central/ovnnb_db.ctl cluster/status OVN_Northbound
-        # microovn.ovs-appctl -t /var/snap/microovn/common/run/central/ovnsb_db.ctl cluster/status OVN_Southbound
-        cmd = []
         output_to_parse = {}
         clusters = ["nb", "sb"]
         for cluster in clusters:
+            config_key = f"{self.config['mode']}_cluster"
+            path = self.config[config_key]["path"]
+            path = f"{path}/{self._get_db_ctl(cluster)}"
+            cmd = [self.ovs_appctl, "-t", path, "cluster/Status", self.cluster_name[cluster]]
             try:
                 self.logger.debug(f"Running {cmd}")
                 output = sp.run(cmd, stdout=sp.PIPE, stderr=sp.DEVNULL)
@@ -42,7 +50,6 @@ class Collector:
             except Exception as exception:
                 self.logger.warning(f"Could not query {cluster} cluster for status")
             continue
-
         return self._parse_cluster_status_output(output_to_parse)
 
     def check_ports(self) -> Dict[int, int]:
@@ -72,7 +79,8 @@ class Collector:
                 self.logger.warning(f"Port {p} for {ports[p]} is an an UNKNOWN state")
         return port_state
 
-    def _get_date_time(self, timestamp):
+    @staticmethod
+    def _get_date_time(timestamp):
         return datetime.strptime(timestamp, "%Y%m%d%H%M%S%z").date().isoformat()
 
     def check_certs(self) -> Dict[str, int]:
@@ -104,8 +112,8 @@ class Collector:
             except Exception as exception:
                 self.logger.error("Could not use decode {cert}")
                 return
-            not_after = self._get_date_time(not_after_timestamp)
-            now = self._get_date_time(datetime.now())
+            not_after = _get_date_time(not_after_timestamp)
+            now = _get_date_time(datetime.now())
             num_days = not_after - now
             num_days = num_days.days
             self.logging.info(f"{cert} valid for {num_days} days, till {not_after}")
