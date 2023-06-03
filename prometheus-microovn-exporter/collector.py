@@ -29,7 +29,16 @@ class Collector:
             "sb": "OVN_Southbound",
         }
 
-    def _parse_cluster_status_output(self) -> Dict [str, Any]:
+    def _parse_cluster_status_output(self, to_parse : Dict [str, Any]) -> Dict [str, Any]:
+        if len(to_parse) != 3:
+            self.logger.warning(
+                "Did not get cluster status output from all 3 units, only got {len(to_parse)}"
+            )
+        roles = []
+        leaders = []
+        votes = []
+        for unit, cluster_status in to_parse.items():
+            continue
         return {}
 
     def _get_db_ctl(self, cluster: str) -> str:
