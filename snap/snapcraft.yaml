@@ -1,0 +1,34 @@
+name: prometheus-microovn-exporter
+base: core22
+adopt-info: prometheus-microovn-exporter
+summary: collects and exports microovn service status and metrics
+description: |
+  Collects microovn service status and metrics periodically.
+  Provides a prometheus exporter interface exposing the collected metrics.
+architectures:
+  - build-on: amd64
+
+grade: stable
+confinement: strict
+
+apps:
+  prometheus-microovn-exporter:
+    daemon: simple
+    restart-condition: on-failure
+    restart-delay: 30s
+    command: bin/prometheus-microovn-exporter
+    plugs: [network, network-bind]
+    environment:
+        PROMETHEUSMICROOVNEXPORTERDIR: $SNAP_DATA/
+
+parts:
+  prometheus-microovn-exporter:
+    plugin: python
+    source: .
+    python-requirements: [./requirements.txt]
+    python-packages:
+      - .
+    override-build: |
+        snapcraftctl build
+        echo "Version: $(python3 setup.py --version)"
+        snapcraftctl set-version "$(python3 setup.py --version)"
