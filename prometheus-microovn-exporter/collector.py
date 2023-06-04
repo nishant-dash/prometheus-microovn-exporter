@@ -124,6 +124,7 @@ class Collector:
             ports[16642] = {"ip": "127.0.0.1", "msg": "OVN misc port"}
         for p in ports:
             create_socket = sock.socket(sock.AF_INET, sock.SOCK_STREAM)
+            create_socket.settimeout(5)
             result = create_socket.connect_ex((ports[p]["ip"], p))
             create_socket.close()
             port_state[p] = int(result)
