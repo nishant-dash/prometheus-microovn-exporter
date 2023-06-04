@@ -71,7 +71,7 @@ class ExporterDaemon:
         while True:
             try:
                 self.logger.info("Collecting gauges...")
-                data = await self.collector.get_stats()
+                data = await self.collector.collect()
                 self.update_registry(data)
                 self.logger.info("Gauges collected and ready for exporting.")
                 await asyncio.sleep(self.config["exporter"]["collect_interval"].get(int) * 60)
