@@ -174,6 +174,10 @@ class OvnScraper:
                 self.logger.warning(f"Port {p} for {ports[p]['msg']} is an an UNKNOWN state")
         return port_state
 
+    @staticmethod
+    def _cleanedup_cert_name(cert_name: str) -> str:
+        return str(cert_name.split("/")[-1])
+
     def get_certs(self) -> Dict[str, int]:
         '''
         Checks the validity of certs and returns a state value where
@@ -182,7 +186,9 @@ class OvnScraper:
         2: Valid, but only for a maximum of 30 days
         '''
         config_key = f"{self.mode}_certs"
-        cert_validity = {str(cert): 1 for cert in self.config[config_key].values()}
+        cert_validity = {
+            self._cleanedup_cert_name(str(cert)): 1 for cert in self.config[config_key].values()
+        }
         for cert in self.config[config_key]:
             cert = self.config[config_key][cert].get(str)
             cert_data = None
@@ -215,9 +221,9 @@ class OvnScraper:
             num_days = num_days.days
             self.logger.info(f"{cert} valid for {num_days} days, till {not_after}")
             if num_days > 30:
-                cert_validity[cert] = 0
+                cert_validity[self._cleanedup_cert_name(cert)] = 0
             elif num_days > 0 and num_days <= 30:
-                cert_validity[cert] = 2
+                cert_validity[self._cleanedup_cert_name(cert)] = 2
         return cert_validity
 
     def get_stats(self) -> Dict[str, Any]:
