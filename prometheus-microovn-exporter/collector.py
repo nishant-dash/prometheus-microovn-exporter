@@ -16,6 +16,7 @@ class Collector:
         self.data: Dict[str, Any] = {}
         self.mode = self.config["mode"].get(str)
         self.logger.debug("Collector initialized")
+        self.ovn_scraper = OvnScraper()
         if self.mode == "microovn":
             self.ovs_appctl = "microovn.ovs-appctl"
         else:
