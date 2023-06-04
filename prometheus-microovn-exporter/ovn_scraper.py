@@ -181,15 +181,15 @@ class OvnScraper:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get stats from current host"""
-        stats = {
-            "cluster_status", self.check_cluster_status(),
-            "ports", self.check_ports(),
-            "certs", self.check_certs(),
-        }
+        stats = [
+            "cluster_status": self.check_cluster_status(),
+            "ports": self.check_ports(),
+            "certs": self.check_certs(),
+        ]
         return stats
 
 
 if __name__ == "__main__":
     scraper = OvnScraper()
-    for k,v in scraper.get_stats():
+    for k,v in scraper.get_stats().items():
         print(f"RET for {k}", v)
