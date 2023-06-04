@@ -31,10 +31,12 @@ class Collector:
     def collect(self) -> Any:
         """Get stats from current host"""
         data = self.ovn_scraper.get_stats()
-        gauges = {i: self.create_gauge(i) for i in data.keys()}
-        for g in gauges:
-            g.add_metric([],)
-            yield g
+        # gauges = {i: self.create_gauge(i) for i in data.keys()}
+        gauge = self.create_gauge("cluster")
+        for elem, info in data.items():
+            for k,v in info.items():
+                g.add_metric([k], v)
+        yield gauge
 
 
 if __name__ == "__main__":
