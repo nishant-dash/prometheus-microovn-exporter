@@ -145,7 +145,7 @@ class Collector:
         1 -> Invalid
         2 -> Valid, but only for 30 more days
         '''
-        config_key = f"{self.config['mode']}_certs"
+        config_key = f"{self.mode}_certs"
         cert_validity = {str(cert): 1 for cert in self.config[config_key].values()}
         for cert in self.config[config_key]:
             cert = self.config[config_key][cert].get(str)
@@ -169,7 +169,7 @@ class Collector:
             try:
                 not_after_timestamp = x509_cert.get_notAfter().decode("utf-8")
             except Exception as exception:
-                self.logger.error(f"Could not use decode {cert}")
+                self.logger.error(f"Could not decode {cert}")
                 continue
             not_after = datetime.strptime(not_after_timestamp, "%Y%m%d%H%M%S%z").date()
             now = datetime.now().date()
