@@ -18,25 +18,21 @@ class Collector:
         self.logger.debug("Collector initialized")
         self.ovn_scraper = OvnScraper()
 
-    def create_gauge(self, element) -> GaugeMetricFamily():
-        gauge_name = f"ovn_{element}_state"
-        gauge_desc = f"State of ovn {element}"
-        labels = [
-            "job",
-            "hostname",
-        ]
-        gauge = GaugeMetricFamily(gauge_name, gauge_desc, labels=labels)
+    def create_gauge(self, element) -> GaugeMetricFamily:
+        gauge_name = f"ovn_cluster_state"
+        gauge_desc = f"State of ovn ovn_cluster_state"
+        gauge = GaugeMetricFamily(gauge_name, gauge_desc, labels=[element])
         return gauge
 
     def collect(self) -> Any:
         """Get stats from current host"""
         data = self.ovn_scraper.get_stats()
-        # gauges = {i: self.create_gauge(i) for i in data.keys()}
-        gauge = self.create_gauge("cluster")
-        for elem, info in data.items():
-            for k,v in info.items():
-                g.add_metric([k], v)
-        yield gauge
+        gauges = {i: self.create_gauge(i) for i in data.keys()}
+        for elem, gauge in gauges.items():
+            for info in data[elem].values():
+                for k,v in info.items():
+                    gauge.add_metric([str(k)], v)
+            yield gauge
 
 
 if __name__ == "__main__":
