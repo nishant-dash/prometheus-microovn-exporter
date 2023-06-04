@@ -31,8 +31,8 @@ class Collector:
         for elem, gauge in gauges.items():
             for k,v in data[elem].items():
                 gauge.add_metric([str(k)], v)
+            # self.logger.info(f"Gauge for {elem} collected and ready for exporting.")
             yield gauge
-
 
 
 if __name__ == "__main__":
