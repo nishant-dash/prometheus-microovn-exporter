@@ -19,7 +19,7 @@ class Collector:
         self.config = Config().get_config()
         self.logger = getLogger(__name__)
         self.data: Dict[str, Any] = {}
-        self.mode = str(self.config["mode"])
+        self.mode = self.config["mode"].get(str)
         self.logger.debug("Collector initialized")
         if self.mode == "microovn":
             self.ovs_appctl = "microovn.ovs-appctl"
@@ -148,7 +148,7 @@ class Collector:
         config_key = f"{self.config['mode']}_certs"
         cert_validity = {str(cert): 1 for cert in self.config[config_key].values()}
         for cert in self.config[config_key]:
-            cert = str(self.config[config_key][cert])
+            cert = self.config[config_key][cert].get(str)
             cert_data = None
             x509_cert = None
             not_after_timestamp = None
