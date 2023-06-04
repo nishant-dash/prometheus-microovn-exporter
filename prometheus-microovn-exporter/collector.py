@@ -1,6 +1,6 @@
 """Collector module."""
 from logging import getLogger
-from typing import Any, Dict, List
+from typing import Any, Dict
 from prometheus_client.core import GaugeMetricFamily
 
 from prometheus_microovn_exporter.config import Config
@@ -29,10 +29,10 @@ class Collector:
         data = self.ovn_scraper.get_stats()
         gauges = {i: self.create_gauge(i) for i in data.keys()}
         for elem, gauge in gauges.items():
-            for info in data[elem].items():
-                for k,v in info.items():
-                    gauge.add_metric([str(k)], v)
+            for k,v in data[elem].items():
+                gauge.add_metric([str(k)], v)
             yield gauge
+
 
 
 if __name__ == "__main__":
