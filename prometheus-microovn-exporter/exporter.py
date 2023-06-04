@@ -42,3 +42,8 @@ class ExporterDaemon:
             # Gracefully handle keyboard interrupt
             self.logger.info(f"{exception}: Exiting...")
             sys.exit(0)
+
+
+if __name__ == "__main__":
+    obj = ExporterDaemon()
+    obj.run()
