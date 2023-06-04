@@ -29,7 +29,7 @@ class Collector:
         data = self.ovn_scraper.get_stats()
         gauges = {i: self.create_gauge(i) for i in data.keys()}
         for elem, gauge in gauges.items():
-            for info in data[elem].values():
+            for info in data[elem].items():
                 for k,v in info.items():
                     gauge.add_metric([str(k)], v)
             yield gauge

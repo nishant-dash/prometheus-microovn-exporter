@@ -226,7 +226,7 @@ class OvnScraper:
                 cert_validity[self._cleanedup_cert_name(cert)] = 2
         return cert_validity
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> Dict[str, Dict]:
         """Get stats from current ovn cluster unit"""
         stats = {
             "cluster_status": self.get_cluster_status(),
