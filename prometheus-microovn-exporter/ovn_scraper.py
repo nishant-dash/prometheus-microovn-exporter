@@ -97,7 +97,10 @@ class OvnScraper:
             except Exception as exception:
                 self.logger.warning(f"Could not query {cluster} cluster for status")
             continue
-        cluster_status_dict = self._parse_cluster_status_output(output_to_parse)
+        return self._parse_cluster_status_output(output_to_parse)
+    
+    def get_cluster_status(self) -> Dict[str, Any]:
+        cluster_status_dict = self.check_cluster_status()
         return self._condense_cluser_status(cluster_status_dict)
 
     # def _get_local_ip(self) -> str:
@@ -137,7 +140,7 @@ class OvnScraper:
             self.logger.debug(cluster_info)
         return ip
 
-    def check_ports(self) -> Dict[int, int]:
+    def get_ports(self) -> Dict[int, int]:
         '''
         Returns a dictionary of port to state mapping where a state value of
         0: port if OPEN
@@ -171,7 +174,7 @@ class OvnScraper:
                 self.logger.warning(f"Port {p} for {ports[p]['msg']} is an an UNKNOWN state")
         return port_state
 
-    def check_certs(self) -> Dict[str, int]:
+    def get_certs(self) -> Dict[str, int]:
         '''
         Checks the validity of certs and returns a state value where
         0: Valid
@@ -220,9 +223,9 @@ class OvnScraper:
     def get_stats(self) -> Dict[str, Any]:
         """Get stats from current ovn cluster unit"""
         stats = {
-            "cluster_status": self.check_cluster_status(),
-            "ports": self.check_ports(),
-            "certs": self.check_certs(),
+            "cluster_status": self.get_cluster_status(),
+            "ports": self.get_ports(),
+            "certs": self.get_certs(),
         }
         return stats
 
