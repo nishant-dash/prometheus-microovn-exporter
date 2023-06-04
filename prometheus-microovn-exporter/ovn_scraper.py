@@ -10,10 +10,10 @@ from prometheus_microovn_exporter.config import Config
 
 
 class OvnScraper:
-    """Core class of the PrometheusMicroovnExporter collector."""
+    """Core class of the PrometheusMicroovnExporter collector's data source."""
 
     def __init__(self) -> None:
-        """Create new collector and configure runtime environment."""
+        """Read configs and initialize scrape."""
         self.config = Config().get_config()
         self.logger = getLogger(__name__)
         self.mode = self.config["mode"].get(str)
@@ -28,6 +28,11 @@ class OvnScraper:
         }
 
     def _parse_cluster_status_output(self, to_parse : Dict [str, Any]) -> Dict [str, Any]:
+        """Read a ovn central's cluster/status ouput and extract information.
+        
+        :param Dict [str, Any] to_parse: dict of nb/sb cluster to it's cluster status
+            output in plaintext
+        """
         final_dict = {}
         to_consider = ["role" ,"leader" ,"vote", "address", "status"]
         for unit, cluster_status in to_parse.items():
@@ -46,9 +51,18 @@ class OvnScraper:
 
     @staticmethod
     def _get_db_ctl(cluster: str) -> str:
+        """Static function that renders nb/sb database ctl file name.
+        
+        :param str cluster: cluster name, either nb or sb
+        """
         return f"ovn{cluster}_db.ctl"
 
     def check_cluster_status(self) -> Dict[str, Any]:
+        """
+        Queries the nb and sb cluster of the unit for its cluster status.
+        Returns a dictionary mapping the cluster (nb/sb) to a dict of values
+        representating the state of the cluster in various aspects.
+        """
         output_to_parse = {}
         clusters = ["nb", "sb"]
         for cluster in clusters:
@@ -91,7 +105,9 @@ class OvnScraper:
     #     return ip
     def _get_local_ip(self) -> str:
         '''
-        Parses local ip either from cluster status
+        Parses local ip from cluster status output
+        @TODO: microovn provides a env file, should try to get something similar
+            from ovn
         '''
         ip = None
         cluster_info = self.check_cluster_status()
@@ -104,9 +120,9 @@ class OvnScraper:
     def check_ports(self) -> Dict[int, int]:
         '''
         Returns a dictionary of port to state mapping where a state value of
-        0 -> port if OPEN,
-        1 -> port is CLOSED,
-        Other values -> UNKNOWN.
+        0: port if OPEN
+        1: port is CLOSED
+        Other values: UNKNOWN
         '''
         port_state = {}
         local_ip = self._get_local_ip()
@@ -138,9 +154,9 @@ class OvnScraper:
     def check_certs(self) -> Dict[str, int]:
         '''
         Checks the validity of certs and returns a state value where
-        0 -> Valid
-        1 -> Invalid
-        2 -> Valid, but only for 30 more days
+        0: Valid
+        1: Invalid
+        2: Valid, but only for a maximum of 30 days
         '''
         config_key = f"{self.mode}_certs"
         cert_validity = {str(cert): 1 for cert in self.config[config_key].values()}
@@ -168,6 +184,8 @@ class OvnScraper:
             except Exception as exception:
                 self.logger.error(f"Could not decode {cert}")
                 continue
+            # get the number of valid days left for the cert, compating the cert's
+            # notAfter date to "today's" date
             not_after = datetime.strptime(not_after_timestamp, "%Y%m%d%H%M%S%z").date()
             now = datetime.now().date()
             num_days = not_after - now
@@ -180,12 +198,12 @@ class OvnScraper:
         return cert_validity
 
     def get_stats(self) -> Dict[str, Any]:
-        """Get stats from current host"""
-        stats = [
+        """Get stats from current ovn cluster unit"""
+        stats = {
             "cluster_status": self.check_cluster_status(),
             "ports": self.check_ports(),
             "certs": self.check_certs(),
-        ]
+        }
         return stats
 
 
