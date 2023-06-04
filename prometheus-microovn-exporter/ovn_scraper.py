@@ -27,6 +27,25 @@ class OvnScraper:
             "sb": "OVN_Southbound",
         }
 
+    def _condense_cluser_status(self, cluster_status_dict: Dict [str, Dict]) -> Dict [str, int]:
+        '''
+        Status of
+        0: good
+        1: bad
+        '''
+        condensed_dict = {}
+        for cluster, cluster_info in cluster_status_dict.items():
+            status = 0
+            if cluster_info["vote"].lower() == "unknown":
+                status = 1
+            if cluster_info["role"].lower() not in ["leader", "follower"]:
+                status = 1
+            if cluster_info["status"].lower() != "cluster member":
+                status = 1 
+            condensed_dict[cluster] = status
+        self.logger.debug(f"Condensed cluster status dict to {condensed_dict}")
+        return condensed_dict
+
     def _parse_cluster_status_output(self, to_parse : Dict [str, Any]) -> Dict [str, Any]:
         """Read a ovn central's cluster/status ouput and extract information.
         
@@ -78,7 +97,8 @@ class OvnScraper:
             except Exception as exception:
                 self.logger.warning(f"Could not query {cluster} cluster for status")
             continue
-        return self._parse_cluster_status_output(output_to_parse)
+        cluster_status_dict = self._parse_cluster_status_output(output_to_parse)
+        return self._condense_cluser_status(cluster_status_dict)
 
     # def _get_local_ip(self) -> str:
     #     '''

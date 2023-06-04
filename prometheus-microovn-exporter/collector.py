@@ -17,42 +17,32 @@ class Collector:
         self.mode = self.config["mode"].get(str)
         self.logger.debug("Collector initialized")
         self.ovn_scraper = OvnScraper()
-        if self.mode == "microovn":
-            self.ovs_appctl = "microovn.ovs-appctl"
-        else:
-            self.ovs_appctl = "ovs-appctl"
-        self.cluster_name = {
-            "nb": "OVN_Northbound",
-            "sb": "OVN_Southbound",
-        }
 
-    def refresh_cache(self, gauge_name: str, gauge_desc: str, labels: List[str]) -> None:
-        """Refresh instances for each collection job.
-
-        :param str gauge_name: the name of the gauge
-        :param str gauge_desc: the description of the gauge
-        :param List[str] labels: the label set of the gauge
-        """
-        self.data = {
-            gauge_name: {
-                "gauge_desc": gauge_desc,
-                "labels": labels,
-                "labelvalues_update": [],
-            }
-        }
-
-    def collect(self) -> Dict[str, Any]:
-        """Get stats from current host"""
-        gauge_name = "ovn_state"
-        gauge_desc = "State of ovn ports certs cluster"
+    def create_gauge(self, element) -> GaugeMetricFamily():
+        gauge_name = f"ovn_{element}_state"
+        gauge_desc = f"State of ovn {element}"
         labels = [
             "job",
             "hostname",
         ]
+        gauge = GaugeMetricFamily(gauge_name, gauge_desc, labels=labels)
+        return gauge
 
-        return self.data
+    def collect(self) -> Any:
+        """Get stats from current host"""
+        data = self.ovn_scraper.get_stats()
+        gauges = {i: self.create_gauge(i) for i in data.keys()}
+        for g in gauges:
+            g.add_metric([],)
+            yield g
 
 
 if __name__ == "__main__":
+    from prometheus_client.core import REGISTRY
+    from prometheus_client import start_http_server
+    import time
     collector = Collector()
-    print("RET", collector.collect())
+    start_http_server(9999)
+    REGISTRY.register(Collector())
+    while True:
+        time.sleep(10)

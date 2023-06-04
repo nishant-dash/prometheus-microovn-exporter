@@ -18,6 +18,6 @@ ovn_certs:
   server: "/etc/ovn/ovn-central.crt"
   cluster: "/etc/ovn/ovn-chassis.crt"
 
-mode: "microovn"
+mode: "ovn"
 
 debug: False
