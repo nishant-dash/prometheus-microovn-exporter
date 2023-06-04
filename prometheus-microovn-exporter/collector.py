@@ -47,7 +47,8 @@ class Collector:
         self.logger.debug(f"From cluster status, parsed {final_dict}")
         return final_dict
 
-    def _get_db_ctl(self, cluster: str) -> str:
+    @staticmethod
+    def _get_db_ctl(cluster: str) -> str:
         return f"ovn{cluster}_db.ctl"
 
     def check_cluster_status(self) -> Dict[str, Any]:
@@ -57,6 +58,7 @@ class Collector:
             config_key = f"{self.config['mode']}_cluster"
             path = self.config[config_key]["path"]
             path = f"{path}/{self._get_db_ctl(cluster)}"
+            # @TODO: Add timeout when checking cluster status
             cmd = [self.ovs_appctl, "-t", path, "cluster/status", self.cluster_name[cluster]]
             try:
                 self.logger.debug(f"Running {cmd}")
