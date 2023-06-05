@@ -22,9 +22,8 @@ ovn_cluster_state{ports="6641"} 0.0
 ovn_cluster_state{ports="6642"} 0.0
 ovn_cluster_state{ports="6643"} 0.0
 ovn_cluster_state{ports="6644"} 0.0
-ovn_cluster_state{ports="16642"} 0.0
 # HELP ovn_cluster_state State of ovn ovn_cluster_state
 # TYPE ovn_cluster_state gauge
-ovn_cluster_state{certs="ovn-central.crt"} 0.0
-ovn_cluster_state{certs="ovn-chassis.crt"} 1.0
+ovn_cluster_state{certs="server.crt"} 0.0
+ovn_cluster_state{certs="cluster.crt"} 1.0
 ```
