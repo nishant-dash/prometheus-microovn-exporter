@@ -7,7 +7,7 @@
 
 *Can use with either microovn or ovn (chassis and central both)*
 
-Example output
+Example output (here, 0 generally means good, as in cluster state is good, port is open, cert is valid)
 
 ```console
 $ curl localhost:9999
